@@ -34,7 +34,7 @@ RUN sh -c "(echo '[program:apache2]'; echo 'command=/usr/sbin/start_apache2 -DSY
 RUN sh -c "(echo '[program:zabbix-server]'; echo 'command=/usr/sbin/zabbix-server -f';echo 'user=zabbixs') >> /etc/supervisord.d/zabbix-server.conf"
 RUN sh -c "(echo '[program:zabbix-agentd]'; echo 'command=/usr/sbin/zabbix-agentd -f';echo 'user=zabbix') >> /etc/supervisord.d/zabbix-agentd.conf"
 
-EXPOSE 80 10050:10051
+EXPOSE 80 10050 10051
 VOLUME ["/etc/zabbix", "/usr/share/zabbix/conf"]
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf", "-n"]
