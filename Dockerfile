@@ -20,7 +20,8 @@ RUN a2enflag ZABBIX && a2enmod access_compat && a2enmod php5 \
     && sed -ri 's@Allow from 10.0.0.0/8@Allow from all@g' /etc/apache2/conf.d/zabbix.conf \
     && sed -ri 's/^(post_max_size.=).*/\1 16M/g' /etc/php5/apache2/php.ini \
     && sed -ri 's/^(max_execution_time.=).*/\1 300/g' /etc/php5/apache2/php.ini \
-    && sed -ri 's/^(max_input_time.=).*/\1 300/g' /etc/php5/apache2/php.ini
+    && sed -ri 's/^(max_input_time.=).*/\1 300/g' /etc/php5/apache2/php.ini \
+    && cp /usr/share/zabbix/conf/zabbix.conf.php{.example,}
 
 
 # Fix supervisord configuration to work correctly as root (zabbix will use zabbix user as default)
@@ -30,11 +31,33 @@ RUN sed -ri 's/;user=chrism(\s+;.*root.*)/user=root\1/g' /etc/supervisord.conf \
     && sed -ri 's@^(file=).*( ;.*)@\1/run/supervisord.sock\2@g' /etc/supervisord.conf
 
 # Supervisord setup
-RUN sh -c "(echo '[program:apache2]'; echo 'command=/usr/sbin/start_apache2 -DSYSTEMD -DFOREGROUND -k start';echo 'redirect_stderr=true') >> /etc/supervisord.d/apache2.conf"
-RUN sh -c "(echo '[program:zabbix-server]'; echo 'command=/usr/sbin/zabbix-server -f';echo 'user=zabbixs') >> /etc/supervisord.d/zabbix-server.conf"
-RUN sh -c "(echo '[program:zabbix-agentd]'; echo 'command=/usr/sbin/zabbix-agentd -f';echo 'user=zabbix') >> /etc/supervisord.d/zabbix-agentd.conf"
+RUN sh -c "(echo '[program:apache2]'; \
+        echo 'command=/usr/sbin/start_apache2 -DSYSTEMD -DFOREGROUND -k start'; \
+        echo 'stdout_logfile=/dev/stdout'; \
+        echo 'stdout_logfile_maxbytes=0'; \
+        echo 'redirect_stderr=true'; \
+        ) >> /etc/supervisord.d/apache2.conf"
+RUN sh -c "(echo '[program:zabbix-server]'; \
+        echo 'command=/usr/sbin/zabbix-server -f'; \
+        echo 'user=zabbixs'; \
+        echo 'stdout_logfile=/dev/stdout'; \
+        echo 'stdout_logfile_maxbytes=0'; \
+        echo 'redirect_stderr=true'; \
+        ) >> /etc/supervisord.d/zabbix-server.conf"
+RUN sh -c "(echo '[program:zabbix-agentd]'; \
+        echo 'command=/usr/sbin/zabbix-agentd -f'; \
+        echo 'user=zabbix'; \
+        echo 'stdout_logfile=/dev/stdout'; \
+        echo 'stdout_logfile_maxbytes=0'; \
+        echo 'redirect_stderr=true'; \
+        ) >> /etc/supervisord.d/zabbix-agentd.conf"
+RUN echo '<meta http-equiv="refresh" content="0; url=/zabbix" />' > /srv/www/htdocs/index.html
 
-EXPOSE 80 10050 10051
+EXPOSE 80 443 10050 10051
 VOLUME ["/etc/zabbix", "/usr/share/zabbix/conf"]
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf", "-n"]
+# Initial configuration should/can be done on docker run with -e (environment) flags
+COPY zabbix-i-c-wrapper.sh /zabbix-init.sh
+RUN chmod 755 /zabbix-init.sh
+
+CMD /zabbix-init.sh
