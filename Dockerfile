@@ -1,14 +1,25 @@
-FROM opensuse:42.1
+FROM opensuse:42.3
 
-MAINTAINER Boris Manojlovic "boris@steki.net"
+ENV SUSE_VERSION=42.3
+ENV VERSION=3.0
+
+LABEL org.label-schema.build-date=$BUILD_DATE \
+      org.label-schema.docker.dockerfile="/Dockerfile" \
+      org.label-schema.vendor="Boris Manojlovic" \
+      org.label-schema.name="zabbix-i-c" \
+      org.label-schema.version="$VERSION" \
+      org.label-schema.url="https://github.com/bmanojlovic/zabbix-i-c" \
+      org.label-schema.vcs-ref=$VCS_REF \
+      org.label-schema.vcs-url="https://github.com/bmanojlovic/zabbix-i-c.git" \
+      org.label-schema.vcs-type="Git"
 
 
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 ENV TERM xterm
 RUN zypper -n --gpg-auto-import-keys ref \
-    && zypper ar http://download.opensuse.org/repositories/server:/monitoring:/zabbix/openSUSE_Leap_42.1/ zabbix \
-    && zypper ar http://download.opensuse.org/repositories/devel:/languages:/python/openSUSE_Leap_42.1/ d_l_p \
+    && zypper ar http://download.opensuse.org/repositories/server:/monitoring:/zabbix/openSUSE_Leap_$SUSE_VERSION/ zabbix \
+    && zypper ar http://download.opensuse.org/repositories/devel:/languages:/python/openSUSE_Leap_$SUSE_VERSION/ d_l_p \
     && zypper -n --gpg-auto-import-keys  ref \
     && sed -ri 's/^(rpm.install.excludedocs.=).*/\1 no/g' /etc/zypp/zypp.conf \
     && zypper -n install --no-recommends zabbix30-server-postgresql zabbix30-agent supervisor sudo php5-gettext \
