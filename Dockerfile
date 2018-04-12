@@ -2,6 +2,9 @@ FROM opensuse:42.3
 
 ENV SUSE_VERSION=42.3
 ENV VERSION=3.0
+# dummy version string to force dockerhub to rebuild image
+ENV ZABBIX_VERSION=3.0.16
+
 
 LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.docker.dockerfile="/Dockerfile" \
