@@ -42,6 +42,7 @@ RUN a2enflag ZABBIX && a2enmod access_compat && a2enmod php${PHP_VERSION} \
 
 # Fix supervisord configuration to work correctly as root (zabbix will use zabbix user as default)
 RUN cp /usr/lib/python2.7/site-packages/supervisor/skel/sample.conf /etc/supervisord.conf \
+    && ( echo '[include]'; echo 'files = /etc/supervisord.d/*.conf' ) >> /etc/supervisord.conf \
     && sed -ri 's/;user=chrism(\s+;.*root.*)/user=root\1/g' /etc/supervisord.conf \
     && sed -ri 's@^pidfile.*( ; .*)@pidfile=/run/supervisord.pid \1@g' /etc/supervisord.conf \
     && sed -ri 's@(serverurl=unix://).*( ;.*)@\1/run/supervisord.sock\2@g' /etc/supervisord.conf \
