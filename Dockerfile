@@ -1,8 +1,9 @@
-FROM opensuse:42.3
+FROM opensuse/leap:15.0
 
-ENV SUSE_VERSION=42.3
+ENV SUSE_VERSION=15.0
 ENV VERSION=3.0
-ENV PHP_VERSION=5
+ENV SVERSION=""
+ENV PHP_VERSION=7
 # dummy version string to force dockerhub to rebuild image
 ENV ZABBIX_VERSION=3.0.20
 
@@ -27,8 +28,10 @@ RUN zypper -n --gpg-auto-import-keys ref \
     && zypper ar https://download.opensuse.org/repositories/home:/bmanojlovic/openSUSE_Leap_${SUSE_VERSION}/ home:bmanojlovic \
     && zypper -n --gpg-auto-import-keys  ref \
     && sed -ri 's/^(rpm.install.excludedocs.=).*/\1 no/g' /etc/zypp/zypp.conf \
-    && zypper -n install --no-recommends zabbix30-server-postgresql zabbix30-agent python-setuptools python-supervisor sudo php${PHP_VERSION}-gettext \
-                      zabbix30-phpfrontend apache2-mod_php${PHP_VERSION} php${PHP_VERSION}-xmlwriter php${PHP_VERSION}-xmlreader php${PHP_VERSION}-pgsql \
+    && zypper -n install --no-recommends zabbix${SVERSION}-server-postgresql zabbix${SVERSION}-agent \
+                      python-setuptools python-supervisor sudo php${PHP_VERSION}-gettext \
+                      zabbix${SVERSION}-phpfrontend apache2-mod_php${PHP_VERSION} php${PHP_VERSION}-xmlwriter \
+                      php${PHP_VERSION}-xmlreader php${PHP_VERSION}-pgsql \
     && zypper clean -a
 
 # Required to be able to access ZABBIX that Allow from all means ALL :)
