@@ -1,11 +1,11 @@
-FROM opensuse/leap:15.0
+FROM opensuse/leap:15.1
 
-ENV SUSE_VERSION=15.0
+ENV SUSE_VERSION=15.1
 ENV VERSION=3.0
 ENV SVERSION=""
 ENV PHP_VERSION=7
 # dummy version string to force dockerhub to rebuild image
-ENV ZABBIX_VERSION=3.0.20
+ENV ZABBIX_VERSION=3.0.28
 
 
 LABEL org.label-schema.build-date=$BUILD_DATE \
@@ -22,14 +22,14 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 ENV TERM xterm
-# This bulshit from my home repository is to fetch supervisor... nothing else
+
 RUN zypper -n --gpg-auto-import-keys ref \
     && zypper ar http://download.opensuse.org/repositories/server:/monitoring:/zabbix/openSUSE_Leap_${SUSE_VERSION}/ zabbix \
-    && zypper ar https://download.opensuse.org/repositories/home:/bmanojlovic/openSUSE_Leap_${SUSE_VERSION}/ home:bmanojlovic \
     && zypper -n --gpg-auto-import-keys  ref \
     && sed -ri 's/^(rpm.install.excludedocs.=).*/\1 no/g' /etc/zypp/zypp.conf \
+    && zypper -n install --no-recommends systemd \
     && zypper -n install --no-recommends zabbix${SVERSION}-server-postgresql zabbix${SVERSION}-agent \
-                      python-setuptools python-supervisor sudo php${PHP_VERSION}-gettext \
+                      supervisor sudo php${PHP_VERSION}-gettext \
                       zabbix${SVERSION}-phpfrontend apache2-mod_php${PHP_VERSION} php${PHP_VERSION}-xmlwriter \
                       php${PHP_VERSION}-xmlreader php${PHP_VERSION}-pgsql \
     && zypper clean -a
@@ -44,7 +44,7 @@ RUN a2enflag ZABBIX && a2enmod access_compat && a2enmod php${PHP_VERSION} \
 
 
 # Fix supervisord configuration to work correctly as root (zabbix will use zabbix user as default)
-RUN cp /usr/lib/python2.7/site-packages/supervisor/skel/sample.conf /etc/supervisord.conf \
+RUN cp /usr/lib/python*/site-packages/supervisor/skel/sample.conf /etc/supervisord.conf \
     && ( echo '[include]'; echo 'files = /etc/supervisord.d/*.conf' ) >> /etc/supervisord.conf \
     && sed -ri 's/;user=chrism(\s+;.*root.*)/user=root\1/g' /etc/supervisord.conf \
     && sed -ri 's@^pidfile.*( ; .*)@pidfile=/run/supervisord.pid \1@g' /etc/supervisord.conf \
