@@ -29,7 +29,7 @@ RUN zypper -n --gpg-auto-import-keys ref \
     && sed -ri 's/^(rpm.install.excludedocs.=).*/\1 no/g' /etc/zypp/zypp.conf \
     && zypper -n install --no-recommends systemd \
     && zypper -n install --no-recommends zabbix${SVERSION}-server-postgresql zabbix${SVERSION}-agent \
-                      supervisor sudo php${PHP_VERSION}-gettext \
+                      python2-setuptools supervisor sudo php${PHP_VERSION}-gettext \
                       zabbix${SVERSION}-phpfrontend apache2-mod_php${PHP_VERSION} php${PHP_VERSION}-xmlwriter \
                       php${PHP_VERSION}-xmlreader php${PHP_VERSION}-pgsql \
     && zypper clean -a
